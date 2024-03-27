@@ -1,0 +1,83 @@
+version: '3'
+name: graylog
+
+# see https://go2docs.graylog.org/5-2/setting_up_graylog/initial_configuration_settings.html?tocpath=Setting%20up%20Graylog%7CGetting%20Started%7CInitial%20Configuration%20Settings%7C_____0
+
+
+services:
+  http-server:
+    build: 
+      context: ..
+      dockerfile: docker-support/Dockerfile
+    image: http-server-to-graylog:latest
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "ASPNETCORE_URLS=http://+:80"
+      - "Logging__LogLevel__HttpServerToGraylog=Debug"
+      - "Graylog__GelfUrl=http://graylog:12201/gelf"
+    ports:
+      - "5001:80"
+    networks:
+      - graylog-net
+    depends_on:
+      - graylog
+
+  graylog:
+    image: graylog/graylog:5.2
+    environment:
+      - "GRAYLOG_HTTP_PUBLISH_URI=http://127.0.0.1:9000/"
+      - "GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/"
+      # Root password is "Test123"
+      # see https://go2docs.graylog.org/5-2/setting_up_graylog/initial_configuration_settings.html?tocpath=Setting%20up%20Graylog%7CGetting%20Started%7CInitial%20Configuration%20Settings%7C_____0
+      - "GRAYLOG_ROOT_PASSWORD_SHA2=d9b5f58f0b38198293971865a14074f59eba3e82595becbe86ae51f1d9f1f65e"
+      - "GRAYLOG_PASSWORD_SECRET=d9b5f58f0b38198293971865a14074f59eba3e82595becbe86ae51f1d9f1f65e"
+      - "GRAYLOG_MONGODB_URI=mongodb://mongo:27017/graylog"
+      - "GRAYLOG_ELASTICSEARCH_HOSTS=http://elastic:Test123@elasticsearch:9200"
+    ports:
+      - "9000:9000" # Web interface
+      - "12201:12201" # GELF TCP
+    volumes:
+      - graylog:/usr/share/graylog/data
+    networks:
+      - graylog-net
+    depends_on:
+      - mongo
+      - elasticsearch
+
+  mongo:
+    image: mongo:7.0
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - graylog-net
+
+  elasticsearch:
+    image: elasticsearch:7.17.19
+    environment:
+      - "xpack.security.enabled=false"
+      - "network.host=0.0.0.0"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"  # min and max heap size is 512m. elastic search will failed if it required more than 512m
+      - "discovery.type=single-node"
+      - "cluster.name=graylog"
+      - "ELASTIC_USERNAME=elastic"
+      - "ELASTIC_PASSWORD=Test123"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - graylog-net
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+
+volumes:
+  graylog:
+  mongo_data:
+  elasticsearch_data:
+
+networks:
+  graylog-net:

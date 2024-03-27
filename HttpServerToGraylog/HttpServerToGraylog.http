@@ -1,0 +1,31 @@
+@HttpServerToGraylog_HostAddress = http://localhost:5001
+
+POST {{HttpServerToGraylog_HostAddress}}/serilogs/ed8977b2-c581-4eba-a943-d3819743634a
+Content-Type: application/json
+
+[{
+  "Timestamp": "2024-03-27T16:59:00+11:00",
+  "Level": "Error",
+  "RenderedMessage": "my error message 47"
+},{
+  "Timestamp": "2024-03-27T16:59:00+11:00",
+  "Level": "Debug",
+  "RenderedMessage": "my debug message 48"
+},{
+  "Timestamp": "2024-03-27T16:59:00+11:00",
+  "Level": "Information",
+  "RenderedMessage": "my info message 49"
+}]
+###
+
+POST http://localhost:12201/gelf
+Content-Type: application/json
+
+{"version":"1.1","host":"aribot.farental.com","short_message":"my error message 34","timestamp":1711515420,"level":3,"_source":"abc"}
+{"version":"1.1","host":"aribot.farental.com","short_message":"my error message 35","timestamp":1711515420,"level":3,"_source":"abc"}
+{"version":"1.1","host":"aribot.farental.com","short_message":"my error message 36","timestamp":1711515420,"level":3,"_source":"abc"}
+{"version":"1.1","host":"aribot.farental.com","short_message":"my error message 37","timestamp":1711515420,"level":3,"_source":"abc"}
+{"version":"1.1","host":"aribot.farental.com","short_message":"my error message 38","timestamp":1711515420,"level":3,"_source":"abc"}
+{"version":"1.1","host":"aribot.farental.com","short_message":"my error message 39","timestamp":1711515420,"level":3,"_source":"abc"}
+{"version":"1.1","host":"aribot.farental.com","short_message":"my error message 40","timestamp":1711515420,"level":3,"_source":"abc"}
+###
